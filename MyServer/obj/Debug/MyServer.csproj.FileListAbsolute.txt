@@ -1,0 +1,20 @@
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyServer\bin\Debug\MyServer.exe
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyServer\bin\Debug\MyServer.pdb
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyServer\bin\Debug\MyClient.exe
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyServer\bin\Debug\MyClient.pdb
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyServer\obj\Debug\MyServer.csprojResolveAssemblyReference.cache
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyServer\obj\Debug\MainWindow.baml
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyServer\obj\Debug\MainWindow.g.cs
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyServer\obj\Debug\App.g.cs
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyServer\obj\Debug\MyServer_MarkupCompile.cache
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyServer\obj\Debug\MyServer.g.resources
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyServer\obj\Debug\MyServer.Properties.Resources.resources
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyServer\obj\Debug\MyServer.csproj.GenerateResource.Cache
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyServer\obj\Debug\MyServer.exe
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyServer\obj\Debug\MyServer.pdb
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyServer\bin\Debug\MyServer.exe.manifest
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyServer\bin\Debug\MyServer.application
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyServer\obj\Debug\MyServer.exe.manifest
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyServer\obj\Debug\MyServer.application
+C:\Users\Евгений\Desktop\MyfileRec\WPF\StudentKeysService\MyServer\obj\Debug\MyServer.exe
+C:\Users\Евгений\Desktop\MyfileRec\WPF\StudentKeysService\MyServer\obj\Debug\MyServer.pdb

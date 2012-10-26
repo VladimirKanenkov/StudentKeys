@@ -1,0 +1,14 @@
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyClient\bin\Debug\MyClient.exe
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyClient\bin\Debug\MyClient.pdb
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyClient\obj\Debug\MainWindow.baml
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyClient\obj\Debug\MainWindow.g.cs
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyClient\obj\Debug\App.g.cs
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyClient\obj\Debug\MyClient_MarkupCompile.cache
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyClient\obj\Debug\MyClient.g.resources
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyClient\obj\Debug\MyClient.Properties.Resources.resources
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyClient\obj\Debug\MyClient.csproj.GenerateResource.Cache
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyClient\obj\Debug\MyClient.exe
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyClient\obj\Debug\MyClient.pdb
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyClient\obj\Debug\MyClient.csprojResolveAssemblyReference.cache
+C:\Users\Евгений\Desktop\MyfileRec\WPF\StudentKeysService\MyClient\obj\Debug\MyClient.exe
+C:\Users\Евгений\Desktop\MyfileRec\WPF\StudentKeysService\MyClient\obj\Debug\MyClient.pdb

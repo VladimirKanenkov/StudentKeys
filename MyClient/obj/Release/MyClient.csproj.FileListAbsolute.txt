@@ -1,0 +1,11 @@
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyClient\bin\Release\MyClient.exe
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyClient\bin\Release\MyClient.pdb
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyClient\obj\Release\MainWindow.baml
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyClient\obj\Release\MainWindow.g.cs
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyClient\obj\Release\App.g.cs
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyClient\obj\Release\MyClient_MarkupCompile.cache
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyClient\obj\Release\MyClient.g.resources
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyClient\obj\Release\MyClient.Properties.Resources.resources
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyClient\obj\Release\MyClient.csproj.GenerateResource.Cache
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyClient\obj\Release\MyClient.exe
+C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyClient\obj\Release\MyClient.pdb
