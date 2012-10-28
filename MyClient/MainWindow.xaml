@@ -51,12 +51,12 @@
                 </LinearGradientBrush>
             </StackPanel.Background>
             <StackPanel Height="Auto" Name="stackPanel3" Width="Auto">
-                <TextBlock x:Name="statusTextBlock" Text="Status" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="16" FontFamily="Segoe UI Semibold" Margin="12,0,0,0" >
+                <TextBlock x:Name="statusTextBlock" Text="Status" HorizontalAlignment="Left" VerticalAlignment="Top" FontSize="16" FontFamily="Segoe UI Semibold" Margin="20,0,0,0" >
                     <TextBlock.Foreground>
                         <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.HighlightTextColorKey}}"/>
                     </TextBlock.Foreground>
                 </TextBlock>
-                <TextBlock Background="#00000000" x:Name="StatusTextBox" Foreground="White" IsEnabled="False" MinWidth="380" MinHeight="380" />
+                <TextBox Background="#00000000" x:Name="StatusTextBox" Foreground="White" Height="380" Width="380" Margin="10,0,0,0" BorderBrush="#00ABADB3" IsReadOnly="True" />
             </StackPanel>
             <!--<StackPanel Height="Auto" Margin="12,0">
                 <TextBlock x:Name="answerTextBlock" Text="Ответ" HorizontalAlignment="Left" FontSize="18" Width="Auto" Foreground="White" FontFamily="Segoe UI Semibold" />

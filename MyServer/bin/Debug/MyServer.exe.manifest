@@ -49,19 +49,19 @@
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
-        <dsig:DigestValue>sFJ6xhuaB5EaDxGLDX5+TJxhzY8=</dsig:DigestValue>
+        <dsig:DigestValue>C6GskV2MaCvkC8ZOAHDRQ7YpCb8=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>
   <dependency>
-    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="MyServer.exe" size="17920">
+    <dependentAssembly dependencyType="install" allowDelayedBinding="true" codebase="MyServer.exe" size="18432">
       <assemblyIdentity name="MyServer" version="1.0.0.0" language="neutral" processorArchitecture="msil" />
       <hash>
         <dsig:Transforms>
           <dsig:Transform Algorithm="urn:schemas-microsoft-com:HashTransforms.Identity" />
         </dsig:Transforms>
         <dsig:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1" />
-        <dsig:DigestValue>ODSsZx0EwuhaPZrpfA3/KXDIuW8=</dsig:DigestValue>
+        <dsig:DigestValue>SIl2UWlVOfudyMGyv6l/3dZrhfw=</dsig:DigestValue>
       </hash>
     </dependentAssembly>
   </dependency>

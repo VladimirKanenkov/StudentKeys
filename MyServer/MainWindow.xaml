@@ -7,11 +7,11 @@
             <RowDefinition Height="303*"/>
             <RowDefinition Height="266*"/>
         </Grid.RowDefinitions>
-        <TextBlock TextWrapping="Wrap" Grid.Row="0" x:Name="ConsoleTextBox" Background="#FF1F7CA8" >
+        <TextBox TextWrapping="Wrap" Grid.Row="0" x:Name="ConsoleTextBox" Background="#FF1F7CA8" BorderBrush="#00ABADB3" IsReadOnly="True" >
             <TextBlock.Foreground>
                 <SolidColorBrush Color="{DynamicResource {x:Static SystemColors.ControlLightLightColorKey}}"/>
             </TextBlock.Foreground>
-        </TextBlock>
+        </TextBox>
         <Grid  Grid.Row="1" Margin="12,20,12,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="158*"/>

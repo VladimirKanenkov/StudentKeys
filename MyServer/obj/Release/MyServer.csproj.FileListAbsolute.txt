@@ -16,3 +16,21 @@ C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyServer\
 C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyServer\bin\Release\MyServer.application
 C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyServer\obj\Release\MyServer.exe.manifest
 C:\Users\Евгений\Documents\Visual Studio 2012\Projects\Project2\MyServer\obj\Release\MyServer.application
+C:\Users\Евгений\Desktop\StudentKeys\MyServer\obj\Release\MyServer.exe
+C:\Users\Евгений\Desktop\StudentKeys\MyServer\obj\Release\MyServer.pdb
+C:\Users\Евгений\Desktop\StudentKeys\MyServer\bin\Release\MyServer.exe.manifest
+C:\Users\Евгений\Desktop\StudentKeys\MyServer\bin\Release\MyServer.application
+C:\Users\Евгений\Desktop\StudentKeys\MyServer\bin\Release\MyServer.exe
+C:\Users\Евгений\Desktop\StudentKeys\MyServer\bin\Release\MyServer.pdb
+C:\Users\Евгений\Desktop\StudentKeys\MyServer\bin\Release\MyClient.exe
+C:\Users\Евгений\Desktop\StudentKeys\MyServer\bin\Release\MyClient.pdb
+C:\Users\Евгений\Desktop\StudentKeys\MyServer\obj\Release\MyServer.csprojResolveAssemblyReference.cache
+C:\Users\Евгений\Desktop\StudentKeys\MyServer\obj\Release\MainWindow.baml
+C:\Users\Евгений\Desktop\StudentKeys\MyServer\obj\Release\MainWindow.g.cs
+C:\Users\Евгений\Desktop\StudentKeys\MyServer\obj\Release\App.g.cs
+C:\Users\Евгений\Desktop\StudentKeys\MyServer\obj\Release\MyServer_MarkupCompile.cache
+C:\Users\Евгений\Desktop\StudentKeys\MyServer\obj\Release\MyServer.g.resources
+C:\Users\Евгений\Desktop\StudentKeys\MyServer\obj\Release\MyServer.Properties.Resources.resources
+C:\Users\Евгений\Desktop\StudentKeys\MyServer\obj\Release\MyServer.csproj.GenerateResource.Cache
+C:\Users\Евгений\Desktop\StudentKeys\MyServer\obj\Release\MyServer.exe.manifest
+C:\Users\Евгений\Desktop\StudentKeys\MyServer\obj\Release\MyServer.application
