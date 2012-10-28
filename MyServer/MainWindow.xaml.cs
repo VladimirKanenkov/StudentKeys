@@ -11,13 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace MyServer
@@ -27,17 +20,17 @@ namespace MyServer
     /// </summary>
     public partial class MainWindow : Window
     {
-        #region SettingsConst
-        // The port number for the remote device.
+        #region Настройки подключения, размер буфера
         const int port = 11000;
         const int socketSize = 100;
         const int bufferSize = 1024;
         #endregion
-        string baseDir;
-        static IPEndPoint localEndPoint;
+        string baseDir;//дирректория, в которой будут храниться принятые данные
+        static IPEndPoint localEndPoint;//наша итоговая точка подключения
         static Socket listener;//серверный сокет для прослушки входящих соединений
-        static List<StateObject> clients = new List<StateObject>();
-        #region Thread signal
+        static List<StateObject> clients = new List<StateObject>();//списко из наших подключенных клиентов
+        #region ManualResetEvent
+        //служат для управления процессом выполнения приложения - ожидание пока какая либо задача выполнится
         public static ManualResetEvent allDone = new ManualResetEvent(false);
         private static ManualResetEvent infoDone =
             new ManualResetEvent(false);
@@ -59,11 +52,12 @@ namespace MyServer
             browseButton.IsEnabled = true;
         }
         /// <summary>
-        /// Выводит результаты в нашу псевдо-консоль
+        /// Выводит результаты в нашу псевдо-консоль при помощи Dispatcher
         /// </summary>
         /// <param name="info">Строка, которую необходимо отобразить</param>
         void WriteStatus(string info)
         {
+            //используем диспатчер, т.к. находимся не в потоке GUI
             this.Dispatcher.BeginInvoke
                 (DispatcherPriority.Normal,
                     (ThreadStart)delegate()
@@ -72,6 +66,11 @@ namespace MyServer
                     }
             );
         }
+        /// <summary>
+        /// Десериализуем наши принятые данные
+        /// </summary>
+        /// <param name="pathToFile">Путь к файлу</param>
+        /// <returns>Объект, представляющий наш файл + информацию о пользователе</returns>
         public MyClient.MyPacketWrapper DeserializeData(string pathToFile)
         {
             byte[] buffer = File.ReadAllBytes(pathToFile);
@@ -82,15 +81,14 @@ namespace MyServer
 
             BinaryFormatter serializer = new BinaryFormatter();
             //получаем наш объект
-            ms.Position = 0;
+            ms.Position = 0;//!! обязательно, чтобы корректно считать с начала
             MyClient.MyPacketWrapper myPacket = (MyClient.MyPacketWrapper)serializer.Deserialize(ms);
 
             ms.Close();
 
             WriteStatus("Deserialization completed, size receive byte: " + buffer.Length);
-            // return myPacket;
-            return myPacket;
 
+            return myPacket;
         }
         /// <summary>
         /// Сохраняем принятый бинарник
@@ -109,10 +107,9 @@ namespace MyServer
                 string pathToFile = path + @"\" + myPacket.FileName;
                 File.WriteAllBytes(pathToFile, myPacket.FileBuff);
             }
-            catch (Exception)
+            catch (Exception exc)
             {
-
-                throw;
+                MessageBox.Show(exc.Message);
             }
 
         }
@@ -133,6 +130,7 @@ namespace MyServer
             );
         }
         #endregion
+
         #region Запуск сервера, начало прослушки всех входящих соеднинений
         /// <summary>
         /// Создаем наш сокет, получаем/определяем ип сервера.
@@ -143,7 +141,7 @@ namespace MyServer
             {
                 localEndPoint = new IPEndPoint(IPAddress.Any, 11000);
 
-                // Create a TCP/IP socket.
+                // Создаем наш сокет
                 listener = new Socket(AddressFamily.InterNetwork,
                     SocketType.Stream, ProtocolType.Tcp);
 
@@ -157,11 +155,14 @@ namespace MyServer
                 return false;
             }
         }
+        /// <summary>
+        /// Привязываем сокет к IPEndPoint, указываем кол-во одновременных подклчений и начинаем слушать
+        /// </summary>
         public void StartListening()
         {
             if (ServerPrepare())
             {
-                // Bind the socket to the local endpoint and listen for incoming connections.
+
                 try
                 {
                     listener.Bind(localEndPoint);
@@ -195,16 +196,21 @@ namespace MyServer
             }
         }
         #endregion
-        #region Получаем файлы, сохраняем, разбираем, отображаем результат
+
+        #region Получаем соединения и файлы
+        /// <summary>
+        /// Получает подключение, заносит его в объект состояния и общий список всех подключений
+        /// </summary>
+        /// <param name="ar"></param>
         public void AcceptCallback(IAsyncResult ar)
         {
-            // Signal the main thread to continue.
+            // Сигнализируем основному потоку продолжить
             allDone.Set();
-            // Get the socket that handles the client request.
+            // Получаем сокет, который инициировал подключение
             Socket listener = (Socket)ar.AsyncState;
             Socket handler = listener.EndAccept(ar);//завершаем старый поток(получения сокета клиента)
 
-            // Create the state object.
+            // Создаем наш объект состояния подключения
             StateObject state = new StateObject();
             state.workSocket = handler;
             //присваиваем каждому свой номер
@@ -215,6 +221,7 @@ namespace MyServer
             //добавим в общий списко клиентов
             clients.Add(state);
 
+            //добавляем в comboBox
             this.Dispatcher.BeginInvoke
                 (DispatcherPriority.Normal,
                     (ThreadStart)delegate()
@@ -226,10 +233,12 @@ namespace MyServer
             WriteStatus("Client " + state.clientNum + " was connected");
 
             infoDone.Reset();
+
             //принимаем данные о размере пакета с данными или сообщение о разрыве связи
             handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
                  new AsyncCallback(ReadInfoCallback), state);
             infoDone.WaitOne();
+
             //если передались данные о размере и присутсвует соединение - можем принимать основные данные
             if (handler.Connected)
             {
@@ -248,7 +257,7 @@ namespace MyServer
                         }
                     );
 
-                //выводим сообщение об отлючении клиента
+                //выводим сообщение об отключении клиента
                 WriteStatus("Client " + state.clientNum + " was disconnected\r\n");
             }
         }
@@ -258,12 +267,8 @@ namespace MyServer
         /// <param name="ar">Хранит в себе результат</param>
         public void ReadInfoCallback(IAsyncResult ar)
         {
-            // Retrieve the state object and the handler socket
-            // from the asynchronous state object.
             StateObject state = (StateObject)ar.AsyncState;
             Socket handler = state.workSocket;
-
-            // Read data from the client socket. 
 
             try
             {
@@ -274,19 +279,15 @@ namespace MyServer
                     string message = Encoding.ASCII.GetString(state.buffer, 0, bytesRead);
                     if (message != "DISCONNECT")
                     {
-                        // All the data has been read from the 
-                        // client. Display it on the console.
                         WriteStatus("size=" + message);
 
                         try
                         {
                             state.sizePacket = long.Parse(message);
-                            //sizePacket = long.Parse(ssize);
                         }
-                        catch (Exception)
+                        catch (Exception exc)
                         {
-                            //не получилось преобразовать данные из строки(или тупо нет строки?)
-                            throw;
+                            MessageBox.Show(exc.Message);
                         }
                     }
                     else
@@ -296,20 +297,18 @@ namespace MyServer
                         handler.Shutdown(SocketShutdown.Both);
                         handler.Close();
                     }
-
                 }
-
             }
             catch (Exception exc)
             {
                 MessageBox.Show("Пропала связь при приеме размера данных. Error: " + exc.Message);
+                //handler.Shutdown(SocketShutdown.Both);
                 handler.Close();
             }
             finally
             {
                 infoDone.Set();
             }
-
         }
         /// <summary>
         /// Получает данные, записывает их в бинарный файл
@@ -317,15 +316,13 @@ namespace MyServer
         /// <param name="ar">Представляет состояние асинхронной операции</param>
         public void ReadCallback(IAsyncResult ar)
         {
-            // Retrieve the state object and the handler socket
-            // from the asynchronous state object.
             StateObject state = (StateObject)ar.AsyncState;
             Socket handler = state.workSocket;
 
             try//смотрим не пропала ли связть(с помощью handler.EndReceive - SocketException
             {
-                // Read data from the client socket. 
                 int bytesRead = handler.EndReceive(ar);
+
                 state.sizeReceived += bytesRead;
                 if (bytesRead > 0)
                 {
@@ -336,10 +333,7 @@ namespace MyServer
                     writer.Write(state.buffer, 0, bytesRead);
                     writer.Close();
 
-                    // All the data has been read from the 
-                    // client. Display it on the console.
-                    //WriteStatus("Read " + bytesRead + "  bytes from socket. Client " + state.clientNum);
-
+                    //Продолжаем принимать пока не совпадут размеры
                     if (state.sizePacket != state.sizeReceived)
                     {
                         handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
@@ -348,8 +342,6 @@ namespace MyServer
                     else
                     {
                         WriteStatus("File was received");
-
-                        //state.sizeReceived = 0;
 
                         MyClient.MyPacketWrapper myPacket = DeserializeData(currentPath);
                         SaveData(myPacket, state.clientNum);
@@ -361,93 +353,29 @@ namespace MyServer
             {
                 MessageBox.Show("Пропала связь при приеме данных. Error: " + exc.Message);
             }
-
-
         }
         #endregion
 
-        public MainWindow()
-        {
-            InitializeComponent();
-            //Пусть у нас простой случай - сервер запускается каждый раз с пустой папкой данных. (ничего не остается после выключения сервера)
-            //Можно увязать логически с самой программой - клиент сразу подлючается к серу и отправляет данные
-            //результат тоже получает в сеансе подключения=> нет нужды хранить данные дольше одного сеанса
-            CreateEmptyDir();
-
-            Task listen = Task.Factory.StartNew(StartListening);
-        }
-
-        private void SendButton_Click(object sender, RoutedEventArgs e)
-        {
-            if (clientComboBox.Items.Count != 0)
-            {
-                //определяем номер выбранного клиента
-                var selectItem = clientComboBox.SelectedItem;
-                if (selectItem != null)
-                {
-                    int cbNum = (int)selectItem;
-
-                    //ищем в списке подлючений, выбираем нужный
-                    StateObject currentClient = clients.First((item) => item.clientNum == cbNum);
-
-                    if (currentClient.sizePacket == currentClient.sizeReceived && currentClient.sizeReceived > 0)
-                    {
-                        //считываем данные с полей
-                        string login = LoginBox.Text;
-                        string password = PasswordBox.Text;
-                        if (login != string.Empty && password != string.Empty)
-                        {
-                            string result = "Login: " + login + "\r\n" + "Password: " + password + "\r\n";
-                            //отправляем данные,закрывает подлючение
-                            Send(currentClient.workSocket, result);
-
-                            //ждем пока не завершится передача
-                            sendDone.WaitOne();
-                            // удаляем из списка и из комбо бокса
-                            clients.Remove(currentClient);
-                            clientComboBox.Items.Remove(clientComboBox.SelectedItem);
-                        }
-                        else
-                        {
-                            MessageBox.Show("Введите Login и Password");
-                        }
-                    }
-                    else
-                    {
-                        MessageBox.Show("Сначала необходимо получить и проверить данные от пользователя(фотографию, документ)");
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("Выберите элемент");
-                }
-            }
-            else
-            {
-                MessageBox.Show("Нет доступных подключений");
-            }
-        }
-
         #region Отправляем данные нашему клиенту
+        /// <summary>
+        /// Приводит строковые данные к байтовому виду и отправляет по сети
+        /// </summary>
+        /// <param name="handler">Текущий сокет для отправки</param>
+        /// <param name="data">Данные, которые надо отправить</param>
         private void Send(Socket handler, String data)
         {
-            // Convert the string data to byte data using ASCII encoding.
             byte[] byteData = Encoding.ASCII.GetBytes(data);
 
-            // Begin sending the data to the remote device.
             handler.BeginSend(byteData, 0, byteData.Length, 0,
                 new AsyncCallback(SendCallback), handler);
         }
-
         private void SendCallback(IAsyncResult ar)
         {
             try
             {
-                // Retrieve the socket from the state object.
                 Socket handler = (Socket)ar.AsyncState;
-                
-                // Complete sending the data to the remote device.
                 int bytesSent = handler.EndSend(ar);
+
                 WriteStatus("Sent " + bytesSent + " bytes to client");
 
                 handler.Shutdown(SocketShutdown.Both);
@@ -465,9 +393,74 @@ namespace MyServer
         }
         #endregion
 
+        #region Кнопки
+        private void SendButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (clientComboBox.Items.Count != 0)
+            {
+                //определяем номер выбранного клиента
+                var selectItem = clientComboBox.SelectedItem;
+                if (selectItem != null)
+                {
+                    int cbNum = (int)selectItem;
+
+                    //ищем в списке подлючений, выбираем нужный
+                    StateObject currentClient = clients.First((item) => item.clientNum == cbNum);
+                    //Если данные были корректно приняты
+                    if (currentClient.sizePacket == currentClient.sizeReceived && currentClient.sizeReceived > 0)
+                    {
+                        //считываем данные с полей ввода
+                        string login = LoginBox.Text;
+                        string password = PasswordBox.Text;
+
+                        if (login != string.Empty && password != string.Empty)
+                        {
+                            //Отправляемая строка данных
+                            string message = "Login: " + login + "\r\n" + "Password: " + password + "\r\n";
+
+                            //отправляем данные,закрывает подлючение
+                            Send(currentClient.workSocket, message);
+                            //ждем пока не завершится передача
+                            sendDone.WaitOne();
+
+                            // удаляем из списка и из комбо бокса по завершению передачи данных
+                            clients.Remove(currentClient);
+                            clientComboBox.Items.Remove(clientComboBox.SelectedItem);
+                        }
+                        else
+                        {
+                            MessageBox.Show("Введите Login и Password");
+                        }
+                    }
+                    else //иначе ждем когда придут.Уведомляем пользователя
+                    {
+                        MessageBox.Show("Сначала необходимо получить и проверить данные от пользователя(фотографию, документ)");
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Выберите элемент");
+                }
+            }
+            else
+            {
+                MessageBox.Show("Нет доступных подключений");
+            }
+        }
         private void browseButton_Click(object sender, RoutedEventArgs e)
         {
+            //Открывает проводник, в заданной дирректории
             Process.Start("explorer.exe", baseDir);
+        }
+        #endregion
+        public MainWindow()
+        {
+            InitializeComponent();
+            //Cервер запускается каждый раз с пустой папкой данных.
+            CreateEmptyDir();
+
+            //Основная логика начинается в новой задаче (потоки)
+            Task listen = Task.Factory.StartNew(StartListening);
         }
         
     }

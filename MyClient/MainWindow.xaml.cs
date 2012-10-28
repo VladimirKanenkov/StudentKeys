@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -9,14 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace MyClient
@@ -26,25 +17,28 @@ namespace MyClient
     /// </summary>
     public partial class MainWindow : Window
     {
+        #region Данные для подключения
         public static int port = 11000;
         public static string ipAddress;
-
+        #endregion
+        #region Прочие данные
         static IPEndPoint remoteEP;
         static Socket client;
-
-        private static byte[] packetSerialize;
-
-        // ManualResetEvent instances signal completion.
+        private static byte[] packetSerialize;//представляет наши сериализованные данные
+        #endregion
+        #region ManualResetEvent
         private static ManualResetEvent connectDone =
             new ManualResetEvent(false);
         private static ManualResetEvent sendDone =
             new ManualResetEvent(false);
         private static ManualResetEvent receiveDone =
             new ManualResetEvent(false);
-
-        // The response from the remote device.
-        private static String response = String.Empty;
-
+        #endregion
+        #region Вспомогательные функции
+        /// <summary>
+        /// Выводит результаты в нашу псевдо-консоль при помощи Dispatcher
+        /// </summary>
+        /// <param name="info">Строка, которую необходимо отобразить</param>
         void WriteStatus(string info)
         {
             this.Dispatcher.BeginInvoke
@@ -55,7 +49,45 @@ namespace MyClient
                     }
             );
         }
+        /// <summary>
+        /// Завершает подключение, выводит сообщение
+        /// </summary>
+        void Shutdown()
+        {
+            client.Shutdown(SocketShutdown.Both);
+            client.Close();
+            // client = null;
+            WriteStatus("Scoket was closed");
+        }
+        /// <summary>
+        /// Считывает данные с полей(+проверки). Запускает StartClient. Изменяет состояние кнопки ConnectButton
+        /// </summary>
+        void StartUp()
+        {
+            if (IPBox.Text != string.Empty && PortBox.Text != string.Empty)//+ проверку на корректные данные
+            {
+                ipAddress = IPBox.Text;
+                port = int.Parse(PortBox.Text);
 
+                bool result;
+                result = StartClient();
+                if (result == true)
+                {
+                    ConnectButton.Content = "Отключиться";
+                }
+                else
+                {
+                    ConnectButton.Content = "Подключиться";
+
+                }
+            }
+            else
+            {
+                MessageBox.Show("Введите IP адрес и порт");
+            }
+        }
+        #endregion
+        #region Подключение - получение сокета
         /// <summary>
         /// Создаем наш сокет, получаем/определяем ип сервера, к которому подключаемся.
         /// </summary>
@@ -77,10 +109,8 @@ namespace MyClient
                 remoteEP = new IPEndPoint(IPAddr, port);
                 WriteStatus("IPendPoint was created, ip:" + remoteEP.Address.ToString() + " port: " + remoteEP.Port.ToString());
 
-                // Create a TCP/IP socket.
                 client = new Socket(AddressFamily.InterNetwork,
                     SocketType.Stream, ProtocolType.Tcp);
-                //StatusTextBox.Text += "Socket was created" + "\r\n";
                 WriteStatus("Socket was created");
 
                 return true;
@@ -103,7 +133,6 @@ namespace MyClient
             {
                 try
                 {
-                    // Connect to the remote endpoint.
                     client.BeginConnect(remoteEP,
                             new AsyncCallback(ConnectCallback), client);
                     connectDone.WaitOne();//ждем пока не будет установлено подключение
@@ -129,67 +158,8 @@ namespace MyClient
                     MessageBox.Show(exc.Message);
                     return false;
                 }
-                
             }
             return false;
-        }
-        private void Receive()
-        {
-            try
-            {
-                // Create the state object.
-                StateObject state = new StateObject();
-                state.workSocket = client;
-
-                // Begin receiving the data from the remote device.
-                client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                    new AsyncCallback(ReceiveCallback), state);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-            }
-        }
-
-        private void ReceiveCallback(IAsyncResult ar)
-        {
-            try
-            {
-                receiveDone.Set();
-                // Retrieve the state object and the client socket 
-                // from the asynchronous state object.
-                StateObject state = (StateObject)ar.AsyncState;
-                Socket MyClient = state.workSocket;
-
-                // Read data from the remote device.
-                int bytesRead = MyClient.EndReceive(ar);
-
-                if (bytesRead > 0)
-                {
-                    // There might be more data, so store the data received so far.
-                    string result = Encoding.ASCII.GetString(state.buffer, 0, bytesRead);
-                    WriteStatus(result);
-
-                    Shutdown();
-
-                    this.Dispatcher.BeginInvoke
-                        (DispatcherPriority.Normal,
-                            (ThreadStart)delegate()
-                            {
-                                ConnectButton.Content = "Подключиться";
-                            }
-                    );
-                    WriteStatus("Socket was disconnected\r\n");
-                }
-                else
-                {
-                    MessageBox.Show("have no data to receive");
-                }
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-            }
         }
         /// <summary>
         /// Вызывается когда выполнено подключение
@@ -199,44 +169,31 @@ namespace MyClient
         {
             try
             {
-                // Retrieve the socket from the state object.
                 // Получаем наш соект из результ.данных
                 Socket client = (Socket)ar.AsyncState;
 
-                // Complete the connection.
                 // Закрываем соединение(поток)
                 client.EndConnect(ar);
 
-                //StatusTextBox.Text += "Socket connected to " + client.RemoteEndPoint.ToString() + "\r\n";
                 WriteStatus("Socket was connected to " + client.RemoteEndPoint.ToString());
             }
             catch (SocketException exc)
             {
                 MessageBox.Show(exc.Message);
-                //StatusTextBox.Text += exc.Message + "\r\n";
                 client.Close();
             }
             catch (Exception exc)
             {
                 MessageBox.Show(exc.Message);
-                //StatusTextBox.Text += exc.Message + "\r\n";
             }
             finally
             {
-                // Signal that the connection has been made.
                 // Сигнализируем основному потоку что можно продолжать.
                 connectDone.Set();
             }
         }
-        private UserInfo GetUserData()
-        {
-            UserInfo currentUser = new UserInfo();
-            currentUser.FullName = FirstLastNameBox.Text;
-            currentUser.University = UniversityBox.Text;
-            currentUser.Phone = PhoneBox.Text;
-
-            return currentUser;
-        }
+        #endregion
+        #region Работа с данными(подготовка, сериализация)
         /// <summary>
         /// Подготавливает данные для отпавки. Результат - byte[] packetSerialize
         /// </summary>
@@ -264,25 +221,27 @@ namespace MyClient
                 }
             }
         }
+        /// <summary>
+        /// Сериализует тукущий объект. (в слудующих версиях возможно внесу в сам класс)
+        /// </summary>
+        /// <param name="currentPacket"></param>
         private void SerializeMyPacket(MyPacketWrapper currentPacket)
         {
+            //Можно реализовать сжатие данных. В это случае придется "разжимать" данные на другой стороне
             //GZipStream zip = new GZipStream(ms, CompressionMode.Compress);
             //byte[] buffer = new byte[list.Capacity];
             //zip.Write(buffer, 0, buffer.Length);
-            //на обратной стороне разжать данные!
+
             MemoryStream ms = new MemoryStream();
             BinaryFormatter serializer = new BinaryFormatter();
-
             serializer.Serialize(ms, currentPacket);
-
             packetSerialize = ms.ToArray();
 
             ms.Close();
-            // StatusTextBox.Text += "Serialization completed, size:" + packetSerialize.Length + "\r\n";
             WriteStatus("Serialization completed, size:" + packetSerialize.Length);
-
         }
-
+        #endregion
+        #region Send/Receive
         private void Send(byte[] packetSerialize)
         {
 
@@ -323,38 +282,65 @@ namespace MyClient
                 MessageBox.Show(e.ToString());
             }
         }
-        void Shutdown()
+        private void Receive()
         {
-            client.Shutdown(SocketShutdown.Both);
-            client.Close();
-           // client = null;
-            WriteStatus("Scoket was closed");
-        }
-
-        void StartUp()
-        {
-            if (IPBox.Text != string.Empty && PortBox.Text != string.Empty)//+ проверку на корректные данные
+            try
             {
-                ipAddress = IPBox.Text;
-                port = int.Parse(PortBox.Text);
+                // Create the state object.
+                StateObject state = new StateObject();
+                state.workSocket = client;
 
-                bool result;
-                result = StartClient();
-                if (result == true)
+                // Begin receiving the data from the remote device.
+                client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+                    new AsyncCallback(ReceiveCallback), state);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
+        }
+        private void ReceiveCallback(IAsyncResult ar)
+        {
+            try
+            {
+                receiveDone.Set();
+                // Retrieve the state object and the client socket 
+                // from the asynchronous state object.
+                StateObject state = (StateObject)ar.AsyncState;
+                Socket MyClient = state.workSocket;
+
+                // Read data from the remote device.
+                int bytesRead = MyClient.EndReceive(ar);
+
+                if (bytesRead > 0)
                 {
-                    ConnectButton.Content = "Отключиться";
+                    // There might be more data, so store the data received so far.
+                    string result = Encoding.ASCII.GetString(state.buffer, 0, bytesRead);
+                    WriteStatus(result);
+
+                    Shutdown();
+
+                    this.Dispatcher.BeginInvoke
+                        (DispatcherPriority.Normal,
+                            (ThreadStart)delegate()
+                            {
+                                ConnectButton.Content = "Подключиться";
+                            }
+                    );
+                    WriteStatus("Socket was disconnected\r\n");
                 }
                 else
                 {
-                    ConnectButton.Content = "Подключиться";
-                    
+                    MessageBox.Show("have no data to receive");
                 }
             }
-            else
+            catch (Exception e)
             {
-                MessageBox.Show("Введите IP адрес и порт");
+                Console.WriteLine(e.ToString());
             }
         }
+        #endregion
+        #region Buttons
         private void ConnectButton_Click(object sender, RoutedEventArgs e)
         {
             if (client == null||(client.Connected==false))
@@ -365,11 +351,13 @@ namespace MyClient
             {
                 if (client.Connected)
                 {
+                    //Меняем надпись на кнопке
                     ConnectButton.Content = "Подключиться";
-                    //send to server disconnect message
+
+                    //Отправляем на сервер сообщение об отключении
                     byte[] message = Encoding.ASCII.GetBytes("DISCONNECT");
                     Send(message);
-
+                    //завершаем соединение
                     Shutdown();
                 }
                 else
@@ -387,20 +375,21 @@ namespace MyClient
         {
             if (client != null && client.Connected)
             {
+                    //проверяем заполненость полей
                 if (FirstLastNameBox.Text != string.Empty
                     && UniversityBox.Text != string.Empty
                     && PhoneBox.Text != string.Empty)
                 {
-                    UserInfo user = GetUserData();//получает данные от пользователя//засунуть в конструктор?
+                    //получаем и подготавливаем данные
+                    UserInfo user = new UserInfo(FirstLastNameBox.Text, UniversityBox.Text, PhoneBox.Text);
                     PrepareData(user, FileNameTextBox.Text);
-
                     byte[] info = Encoding.ASCII.GetBytes(packetSerialize.Length.ToString());
 
+                    //отправляем информацию о размере(или об отключении)
                     Send(info);
                     if (client.Connected)
                     {
                         Send(packetSerialize);
-                        //StatusTextBox.Text += "All bytes have been sent." + "\r\n";
                         WriteStatus("All bytes have been sent.");
 
                         WriteStatus("Wating to answer...");
@@ -412,7 +401,6 @@ namespace MyClient
                         ConnectButton.Content = "Подключиться";
 
                         Shutdown();
-
                     }
                 }
                 else
@@ -425,7 +413,11 @@ namespace MyClient
                 MessageBox.Show("Сначала необходимо подключиться");
             }
         }
-
+        /// <summary>
+        /// Открывает диалоговое окно с выбором пути. Резултат путь, в текстовое поле FileNameTextBox
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void browseButton_Click(object sender, RoutedEventArgs e)
         {
             // Create OpenFileDialog 
@@ -442,11 +434,10 @@ namespace MyClient
                 MyPic.Source = new BitmapImage(new Uri(dlg.FileName, UriKind.RelativeOrAbsolute));
             }
         }
-
+        #endregion
         public MainWindow()
         {
             InitializeComponent();
         }
-
     }
 }

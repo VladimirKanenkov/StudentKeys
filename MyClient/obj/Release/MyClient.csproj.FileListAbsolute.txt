@@ -20,3 +20,4 @@ C:\Users\Евгений\Desktop\StudentKeys\MyClient\obj\Release\MyClient_Markup
 C:\Users\Евгений\Desktop\StudentKeys\MyClient\obj\Release\MyClient.g.resources
 C:\Users\Евгений\Desktop\StudentKeys\MyClient\obj\Release\MyClient.Properties.Resources.resources
 C:\Users\Евгений\Desktop\StudentKeys\MyClient\obj\Release\MyClient.csproj.GenerateResource.Cache
+C:\Users\Евгений\Desktop\StudentKeys\MyClient\obj\Release\MyClient.csprojResolveAssemblyReference.cache
