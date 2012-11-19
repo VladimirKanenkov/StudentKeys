@@ -161,6 +161,7 @@ namespace MyClient
             }
             return false;
         }
+
         /// <summary>
         /// Вызывается когда выполнено подключение
         /// </summary>
@@ -214,6 +215,7 @@ namespace MyClient
                 catch (FileNotFoundException exc)
                 {
                     MessageBox.Show(exc.Message);
+
                 }
                 catch (Exception exc)
                 {
@@ -316,7 +318,8 @@ namespace MyClient
                 if (bytesRead > 0)
                 {
                     // There might be more data, so store the data received so far.
-                    string result = Encoding.ASCII.GetString(state.buffer, 0, bytesRead);
+                   // string result = Encoding.ASCII.GetString(state.buffer, 0, bytesRead);
+                    string result = Encoding.UTF8.GetString(state.buffer, 0, bytesRead);
                     WriteStatus(result);
 
                     Shutdown();
@@ -376,37 +379,56 @@ namespace MyClient
         {
             if (client != null && client.Connected)
             {
-                    //проверяем заполненость полей
-                if (FirstLastNameBox.Text != string.Empty
-                    && UniversityBox.Text != string.Empty
-                    && PhoneBox.Text != string.Empty)
+                string path;
+                try
                 {
-                    //получаем и подготавливаем данные
-                    UserInfo user = new UserInfo(FirstLastNameBox.Text, UniversityBox.Text, PhoneBox.Text);
-                    PrepareData(user, FileNameTextBox.Text);
-                    byte[] info = Encoding.ASCII.GetBytes(packetSerialize.Length.ToString());
-
-                    //отправляем информацию о размере(или об отключении)
-                    Send(info);
-                    if (client.Connected)
+                    path = FileNameTextBox.Text;
+                    //условия для запуска обработки и отправки данных
+                    if (FirstLastNameBox.Text != string.Empty
+                            && UniversityBox.Text != string.Empty
+                            && PhoneBox.Text != string.Empty
+                            && path != string.Empty)
                     {
-                        Send(packetSerialize);
-                        WriteStatus("All bytes has been sent.");
+                        //получаем и подготавливаем данные
+                        UserInfo user = new UserInfo(FirstLastNameBox.Text, UniversityBox.Text, PhoneBox.Text);
 
-                        WriteStatus("Wating to answer...");
-                        Task receiveTask = Task.Factory.StartNew(Receive);
+                        if (File.Exists(path))
+                        {
+                            PrepareData(user, path);
+
+                            byte[] info = Encoding.ASCII.GetBytes(packetSerialize.Length.ToString());
+
+                            //отправляем информацию о размере(или об отключении)
+                            Send(info);
+                            if (client.Connected)
+                            {
+                                Send(packetSerialize);
+                                WriteStatus("All bytes has been sent.");
+
+                                WriteStatus("Wating to answer...");
+                                Task receiveTask = Task.Factory.StartNew(Receive);
+                            }
+                            else
+                            {
+                                WriteStatus("Connection was closed");
+                                ConnectButton.Content = "Подключиться";
+
+                                Shutdown();
+                            }
+                        }
+                        else
+                        {
+                            MessageBox.Show("Текущий путь до файла не корректен, либо файл отсуствует");
+                        }
                     }
                     else
                     {
-                        WriteStatus("Connection was closed");
-                        ConnectButton.Content = "Подключиться";
-
-                        Shutdown();
+                        MessageBox.Show("Заполните данные пользователя");
                     }
                 }
-                else
+                catch (Exception)
                 {
-                    MessageBox.Show("Заполните данные пользователя");
+                    MessageBox.Show("SOME ERROR");
                 }
             }
             else
@@ -432,7 +454,16 @@ namespace MyClient
             if (result == true)
             {
                 FileNameTextBox.Text = dlg.FileName;
-                MyPic.Source = new BitmapImage(new Uri(dlg.FileName, UriKind.RelativeOrAbsolute));
+                try
+                {
+                    MyPic.Source = new BitmapImage(new Uri(dlg.FileName, UriKind.RelativeOrAbsolute));
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show("Предполагается что вы передаете изображение. Поменяйте файл на файл с изображением, или продолжите передачу текущего");
+                    MyPic.Source = new BitmapImage();
+                }
+                
             }
         }
         #endregion

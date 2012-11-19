@@ -364,7 +364,8 @@ namespace MyServer
         /// <param name="data">Данные, которые надо отправить</param>
         private void Send(Socket handler, String data)
         {
-            byte[] byteData = Encoding.ASCII.GetBytes(data);
+            byte[] byteData = Encoding.UTF8.GetBytes(data);
+           // byte[] bd = Encoding.UTF8.GetBytes(data);
 
             handler.BeginSend(byteData, 0, byteData.Length, 0,
                 new AsyncCallback(SendCallback), handler);
