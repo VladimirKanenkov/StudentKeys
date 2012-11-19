@@ -227,6 +227,7 @@ namespace MyClient
         /// <param name="currentPacket"></param>
         private void SerializeMyPacket(MyPacketWrapper currentPacket)
         {
+            
             //Можно реализовать сжатие данных. В это случае придется "разжимать" данные на другой стороне
             //GZipStream zip = new GZipStream(ms, CompressionMode.Compress);
             //byte[] buffer = new byte[list.Capacity];
@@ -274,7 +275,7 @@ namespace MyClient
                 int bytesSent = client.EndSend(ar);
                 // MessageBox.Show("Sent " +bytesSent+" bytes to server." );
 
-                // Signal that all bytes have been sent.
+                // Signal that all bytes has been sent.
                 sendDone.Set();
             }
             catch (Exception e)
@@ -390,7 +391,7 @@ namespace MyClient
                     if (client.Connected)
                     {
                         Send(packetSerialize);
-                        WriteStatus("All bytes have been sent.");
+                        WriteStatus("All bytes has been sent.");
 
                         WriteStatus("Wating to answer...");
                         Task receiveTask = Task.Factory.StartNew(Receive);
