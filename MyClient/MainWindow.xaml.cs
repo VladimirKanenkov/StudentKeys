@@ -25,6 +25,7 @@ namespace MyClient
         static IPEndPoint remoteEP;
         static Socket client;
         private static byte[] packetSerialize;//представляет наши сериализованные данные
+        private const string disconnectMessage = "DISCONNECT";
         #endregion
         #region ManualResetEvent
         private static ManualResetEvent connectDone =
@@ -74,16 +75,34 @@ namespace MyClient
                 if (result == true)
                 {
                     ConnectButton.Content = "Отключиться";
+                   // Task listenState = Task.Factory.StartNew(CheckConnection);
                 }
                 else
                 {
                     ConnectButton.Content = "Подключиться";
-
                 }
             }
             else
             {
                 MessageBox.Show("Введите IP адрес и порт");
+            }
+        }
+
+        private void CheckConnection()
+        {
+            try
+            {
+                // Create the state object.
+                StateObject state = new StateObject();
+                state.workSocket = client;
+
+                // Begin receiving the data from the remote device.
+                client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+                    new AsyncCallback(ReceiveCallback), state);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
             }
         }
         #endregion
@@ -245,9 +264,8 @@ namespace MyClient
         }
         #endregion
         #region Send/Receive
-        private void Send(byte[] packetSerialize)
+        private bool Send(byte[] packetSerialize)
         {
-
             sendDone.Reset();
             receiveDone.Reset();
             try
@@ -255,15 +273,20 @@ namespace MyClient
                 client.BeginSend(packetSerialize, 0, packetSerialize.Length, 0,
                     new AsyncCallback(SendCallback), client);
                 sendDone.WaitOne();
+                return true;
             }
             catch (SocketException exc)
             {
                 MessageBox.Show(exc.Message);
-                //WriteStatus("Socket was closed");
+                MessageBox.Show("Проблема с соединением. Попробуйте переподключиться.");
+                ConnectButton.Content = "Подключиться";
+                WriteStatus("Connection problems");
+                return false;
             }
             catch (Exception exc)
             {
                 MessageBox.Show(exc.Message);
+                return false;
             }
         }
         private void SendCallback(IAsyncResult ar)
@@ -307,8 +330,6 @@ namespace MyClient
             try
             {
                 receiveDone.Set();
-                // Retrieve the state object and the client socket 
-                // from the asynchronous state object.
                 StateObject state = (StateObject)ar.AsyncState;
                 Socket MyClient = state.workSocket;
 
@@ -317,8 +338,6 @@ namespace MyClient
 
                 if (bytesRead > 0)
                 {
-                    // There might be more data, so store the data received so far.
-                   // string result = Encoding.ASCII.GetString(state.buffer, 0, bytesRead);
                     string result = Encoding.UTF8.GetString(state.buffer, 0, bytesRead);
                     WriteStatus(result);
 
@@ -359,7 +378,7 @@ namespace MyClient
                     ConnectButton.Content = "Подключиться";
 
                     //Отправляем на сервер сообщение об отключении
-                    byte[] message = Encoding.ASCII.GetBytes("DISCONNECT");
+                    byte[] message = Encoding.ASCII.GetBytes(disconnectMessage);
                     Send(message);
                     //завершаем соединение
                     Shutdown();
@@ -377,58 +396,72 @@ namespace MyClient
         /// <param name="e"></param>
         private void SendButton_Click(object sender, RoutedEventArgs e)
         {
-            if (client != null && client.Connected)
+            if (client != null )
             {
-                string path;
-                try
+                if (client.Connected)
                 {
-                    path = FileNameTextBox.Text;
-                    //условия для запуска обработки и отправки данных
-                    if (FirstLastNameBox.Text != string.Empty
-                            && UniversityBox.Text != string.Empty
-                            && PhoneBox.Text != string.Empty
-                            && path != string.Empty)
+                    string path;
+                    try
                     {
-                        //получаем и подготавливаем данные
-                        UserInfo user = new UserInfo(FirstLastNameBox.Text, UniversityBox.Text, PhoneBox.Text);
-
-                        if (File.Exists(path))
+                        path = FileNameTextBox.Text;
+                        //условия для запуска обработки и отправки данных
+                        if (FirstLastNameBox.Text != string.Empty
+                                && UniversityBox.Text != string.Empty
+                                && PhoneBox.Text != string.Empty
+                                && path != string.Empty)
                         {
-                            PrepareData(user, path);
+                            //получаем и подготавливаем данные
+                            UserInfo user = new UserInfo(FirstLastNameBox.Text, UniversityBox.Text, PhoneBox.Text);
 
-                            byte[] info = Encoding.ASCII.GetBytes(packetSerialize.Length.ToString());
-
-                            //отправляем информацию о размере(или об отключении)
-                            Send(info);
-                            if (client.Connected)
+                            if (File.Exists(path))
                             {
-                                Send(packetSerialize);
-                                WriteStatus("All bytes has been sent.");
+                                PrepareData(user, path);
 
-                                WriteStatus("Wating to answer...");
-                                Task receiveTask = Task.Factory.StartNew(Receive);
+                                byte[] info = Encoding.ASCII.GetBytes(packetSerialize.Length.ToString());
+
+                                //отправляем информацию о размере(или об отключении)
+                                bool isConnected =Send(info);
+                                if (isConnected)
+                                {
+                                    if (client.Connected)
+                                    {
+                                        isConnected=Send(packetSerialize);
+                                        if (isConnected)
+                                        {
+                                            WriteStatus("All bytes has been sent.");
+
+                                            WriteStatus("Wating to answer...");
+                                            Task receiveTask = Task.Factory.StartNew(Receive);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        WriteStatus("Connection was closed");
+                                        ConnectButton.Content = "Подключиться";
+
+                                        Shutdown();
+                                    }
+                                }
                             }
                             else
                             {
-                                WriteStatus("Connection was closed");
-                                ConnectButton.Content = "Подключиться";
-
-                                Shutdown();
+                                MessageBox.Show("Текущий путь до файла не корректен, либо файл отсуствует");
                             }
                         }
                         else
                         {
-                            MessageBox.Show("Текущий путь до файла не корректен, либо файл отсуствует");
+                            MessageBox.Show("Заполните данные пользователя");
                         }
                     }
-                    else
+                    catch (Exception)
                     {
-                        MessageBox.Show("Заполните данные пользователя");
+                        MessageBox.Show("SOME ERROR");
                     }
                 }
-                catch (Exception)
+                else//случай отсутсвия подключения
                 {
-                    MessageBox.Show("SOME ERROR");
+                    MessageBox.Show("Проблема с соединением. Попробуйте переподключиться.");
+                    ConnectButton.Content = "Подключиться";
                 }
             }
             else
@@ -445,7 +478,6 @@ namespace MyClient
         {
             // Create OpenFileDialog 
             Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
-            
 
             // Display OpenFileDialog by calling ShowDialog method 
             Nullable<bool> result = dlg.ShowDialog();
@@ -463,7 +495,6 @@ namespace MyClient
                     MessageBox.Show("Предполагается что вы передаете изображение. Поменяйте файл на файл с изображением, или продолжите передачу текущего");
                     MyPic.Source = new BitmapImage();
                 }
-                
             }
         }
         #endregion

@@ -28,13 +28,15 @@ namespace MyServer
         string baseDir;//дирректория, в которой будут храниться принятые данные
         static IPEndPoint localEndPoint;//наша итоговая точка подключения
         static Socket listener;//серверный сокет для прослушки входящих соединений
-        static List<StateObject> clients = new List<StateObject>();//списко из наших подключенных клиентов
+        static List<StateObject> clients = new List<StateObject>();//список из наших подключенных клиентов
         #region ManualResetEvent
         //служат для управления процессом выполнения приложения - ожидание пока какая либо задача выполнится
         public static ManualResetEvent allDone = new ManualResetEvent(false);
         private static ManualResetEvent infoDone =
             new ManualResetEvent(false);
         private static ManualResetEvent sendDone = new ManualResetEvent(false);
+
+        private const string disconnectMessage = "DISCONNECT";
         #endregion
 
         #region Вспомогательные функции
@@ -277,7 +279,7 @@ namespace MyServer
                 if (bytesRead > 0)
                 {
                     string message = Encoding.ASCII.GetString(state.buffer, 0, bytesRead);
-                    if (message != "DISCONNECT")
+                    if (message != disconnectMessage)
                     {
                         WriteStatus("size=" + message);
 
@@ -463,6 +465,25 @@ namespace MyServer
             //Основная логика начинается в новой задаче (потоки)
             Task listen = Task.Factory.StartNew(StartListening);
         }
+        //обработаем закрытие программы. если програма закрывается - отправляем сообщение всем клиентом о прекращении связи
+        private void Window_Closing_1(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (MessageBox.Show("Do you really wanna exit?", "Exiting",MessageBoxButton.OKCancel)== MessageBoxResult.Cancel)    
+            {
+                e.Cancel = true;
+            }
+            else
+            {
+                foreach (var client in clients)
+                {
+                    Send(client.workSocket, disconnectMessage);
+                    client.workSocket.Shutdown(SocketShutdown.Both);
+                    client.workSocket.Close();
+                }
+            }
+            
+        }
+
         
     }
 }
