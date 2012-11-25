@@ -364,13 +364,27 @@ namespace MyServer
         /// </summary>
         /// <param name="handler">Текущий сокет для отправки</param>
         /// <param name="data">Данные, которые надо отправить</param>
-        private void Send(Socket handler, String data)
+        private bool Send(Socket handler, String data)
         {
             byte[] byteData = Encoding.UTF8.GetBytes(data);
            // byte[] bd = Encoding.UTF8.GetBytes(data);
-
-            handler.BeginSend(byteData, 0, byteData.Length, 0,
+            try
+            {
+                handler.BeginSend(byteData, 0, byteData.Length, 0,
                 new AsyncCallback(SendCallback), handler);
+                return true;
+            }
+            catch (SocketException exc)
+            {
+                MessageBox.Show(exc.Message);
+                WriteStatus("Connection problems");
+                return false;
+            }
+            catch (Exception exc)
+            {
+                MessageBox.Show(exc.Message);
+                return false;
+            } 
         }
         private void SendCallback(IAsyncResult ar)
         {
@@ -422,10 +436,16 @@ namespace MyServer
                             string message = "Login: " + login + "\r\n" + "Password: " + password + "\r\n";
 
                             //отправляем данные,закрывает подлючение
-                            Send(currentClient.workSocket, message);
-                            //ждем пока не завершится передача
-                            sendDone.WaitOne();
+                            bool state = Send(currentClient.workSocket, message);
+                            if (state == true)
+                            {
+                                //ждем пока не завершится передача
+                                sendDone.WaitOne();
+                            }
+                            else
+                            {
 
+                            }
                             // удаляем из списка и из комбо бокса по завершению передачи данных
                             clients.Remove(currentClient);
                             clientComboBox.Items.Remove(clientComboBox.SelectedItem);
@@ -483,7 +503,5 @@ namespace MyServer
             }
             
         }
-
-        
     }
 }
