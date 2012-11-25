@@ -115,16 +115,16 @@ namespace MyClient
             try
             {
                 IPHostEntry ipHostInfo = Dns.GetHostEntry(ipAddress);
+                //ищем ип семейства ipv4. на некоторых компах в семестве адресов присутсвовали и 4 и 6 версии(некорректные). собственно пока 6 версию не рассматриваем
                 IPAddress IPAddr = ipHostInfo.AddressList[0];
                 foreach (var addr in ipHostInfo.AddressList)
                 {
-                    if (!addr.IsIPv6LinkLocal)
+                    if (addr.AddressFamily == AddressFamily.InterNetwork)
                     {
                         IPAddr = addr;
                         break;
                     }
                 }
-
                 remoteEP = new IPEndPoint(IPAddr, port);
                 WriteStatus("IPendPoint was created, ip:" + remoteEP.Address.ToString() + " port: " + remoteEP.Port.ToString());
 
